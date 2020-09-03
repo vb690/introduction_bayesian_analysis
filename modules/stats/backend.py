@@ -1,16 +1,24 @@
 import numpy as np
 
 
-def compute_stats(array, ci=95, precis=2):
+def compute_stats(array, ci=0.95, precis=2, sampling_prob=None):
     """
     """
-    array = np.array(array)
+    if sampling_prob is not None:
+        sampled_array = np.random.choice(
+            array,
+            size=len(array),
+            p=sampling_prob / sampling_prob.sum()
+        )
+    else:
+        sampled_array = np.array(array)
+    quantiles =  np.quantile(sampled_array, [1.0 - ci, ci])
     stats = {
-        'mean': array.mean(),
-        'std': array.std(),
-        'median': np.median(array),
-        'lower': np.percentile(array, 100 - ci),
-        'upper': np.percentile(array, ci)
+        'mean': sampled_array.mean(),
+        'std': sampled_array.std(),
+        'median': np.median(sampled_array),
+        'lower': min(quantiles),
+        'upper': max(quantiles)
     }
     for stat, value in stats.items():
 
@@ -31,9 +39,3 @@ def compute_sp_posterior(prior, likelyhood):
     posterior = prior * likelyhood
     posterior = posterior / np.sum(posterior)
     return posterior
-
-
-def grid_search():
-    """
-    """
-    pass
