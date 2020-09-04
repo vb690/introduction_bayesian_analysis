@@ -10,8 +10,15 @@ from IPython.display import display, clear_output
 from modules.stats.backend import compute_stats, compute_sp_posterior
 
 
+def visulize_quadratic_approx(parameter, plausibility, figsize=(10, 8),
+                             **kwargs):
+    """
+    """
+    sns.set(style='white', font_scale=1.5)
+    pass
+
 def visualize_priors_effect(parameter_space, priors, likelyhood,
-                            figsize=(15, 10), **kwargs):
+                            figsize=(10, 8), **kwargs):
     """
     """
     sns.set(style='white', font_scale=1.5)
@@ -53,8 +60,10 @@ def visualize_priors_effect(parameter_space, priors, likelyhood,
     plt.tight_layout()
     plt.show()
 
+    return None
+
 def visualize_binomial_update(n_tests, parameter_space=np.linspace(0, 1, 100),
-                              figsize=(10, 10), auto=False, **kwargs):
+                              figsize=(10, 8), auto=False, **kwargs):
     """ Visualize the prior update.
     """
     sns.set(style='white', font_scale=1.5)
@@ -126,8 +135,10 @@ def visualize_binomial_update(n_tests, parameter_space=np.linspace(0, 1, 100),
 
 def visualize_bivariate_regression(X, y, X_label='', y_label='', title='',
                                    figsize=(10, 8), **kwargs):
+    """
+    """
     sns.set(style='white', font_scale=1.5)
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=figsize)
     plt.scatter(X, y)
 
     plt.title(title)
@@ -137,7 +148,38 @@ def visualize_bivariate_regression(X, y, X_label='', y_label='', title='',
 
     return None
 
-def visualize_posterior_predictions():
+def visualize_regression_lines(X, y, intercepts, slopes, title, figsize=(10, 8),
+                               overlay=True, n_lines=100, **kwargs):
     """
     """
-    pass
+
+    predictor = np.linspace(X.min(), X.max(), len(X))
+    alpha_1 = 0.3 if overlay else 1
+    alpha_2 = 1 if overlay else 0.3
+
+    sns.set(style='white', font_scale=1.5)
+    plt.figure(figsize=figsize)
+    for intercept, slope  in zip(intercepts, slopes):
+
+        predictions = intercept + slope * predictor
+        plt.plot(
+            predictor,
+            predictions,
+            alpha=alpha_1,
+            **kwargs
+        )
+
+        plt.scatter(
+            X,
+            y,
+            alpha=alpha_2
+        )
+
+    plt.xlim(X.min(), X.max())
+    plt.ylim(y.min(), y.max())
+    plt.title(title)
+    plt.xlabel('Predictor X')
+    plt.ylabel('Outcome y')
+    plt.show()
+
+    return None

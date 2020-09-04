@@ -2,53 +2,29 @@ from scipy.stats import binom
 import pymc3 as pm
 
 from modules.stats.backend import compute_sp_posterior
+from modules.utils.models_utils import AbastractModel
 
 
-class PrevalenceModel:
+class BivariateNormalRegression(AbastractModel):
     """
     """
-    def __init__(self, parameter_space):
-        """
-        """
-        self.parameter_space = parameter_space
-
-    def fit(self, k, n, prior):
-        """
-        """
-        likelyhood = binom(k, n).pmf(self.parameter_space)
-        posterior = compute_sp_posterior(
-            prior=prior,
-            likelyhood=likelyhood
-        )
-        setattr(self, 'prior', prior)
-        setattr(self, 'likelyhood', likelyhood)
-        setattr(self, 'posterior')
-
-    def sample(self, n_samples=1000):
-        """
-        """
-        samples = np.random.choice(
-            self.parameter_space,
-            n_samples,
-            p=self.posterior
-        )
-        return samples
-
-
-class BivariateLogitNormalRegression:
-    """
-    """
-    def __init__(self, slope_prior, intercept_prior=None):
+    def __init__(self, X, y, intercept_prior=(0, 100), slope_prior=(0, 100),
+                 likelyhood_sigma_prior=100, fit_intercept=True):
         """
         """
         self.intercept_prior = intercept_prior
         self.slope_prior = slope_prior
+        self.likelyhood_sigma_prior = likelyhood_sigma_prior
+        self.fit_intercept = fit_intercept
+        self.X = X
+        self.y = y
+        self.model = self.generate_model(X, y)
 
-    def __generate_model(self, X, y):
+    def generate_model(self, X, y):
         """
         """
-        with pm.Model() as logistic_model:
-            if self.intercept_prior is None:
+        with pm.Model() as model:
+            if not self.fit_intercept:
                 intercept = pm.math.constant(
                     0,
                     name='Intercpet'
@@ -68,39 +44,20 @@ class BivariateLogitNormalRegression:
             mu = intercept + slope * X
 
             sigma = pm.HalfNormal(
-                name='std_normal',
-                sigma=2
+                name='Likelyhood Sigma',
+                sigma=self.likelyhood_sigma_prior
             )
 
-            pm.Normal(
-                name='logit_normal',
+            likelyhood = pm.Normal(
+                name='y',
                 mu=mu,
                 sd=sigma,
                 observed=y
            )
 
-        setattr(self, 'model', logistic_model)
-        return None
+            prior_checks = pm.sample_prior_predictive(
+                samples=100
+            )
+            setattr(self, 'prior_checks', prior_checks)
 
-    def fit(self, X, y, MAP=True, **kwargs):
-        """
-        """
-        self.__generate_model(
-            X=X,
-            y=y
-        )
-        with self.model:
-            if MAP:
-                map_estimate = pm.find_MAP()
-                return map_estimate
-            else:
-                traces = pm.sample(**kwargs)
-                return traces
-
-    def show_plate(self):
-        """
-        """
-        plate = pm.model_graph.model_to_graphviz(
-            self.model.model
-        )
-        return plate
+        return model
