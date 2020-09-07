@@ -23,6 +23,12 @@ Workshop on introductory concepts in bayesian data analysis - presented at IGGI 
 * Q&A Session (if time)  
     - Questions and Answers  
     - Live Coding  
+    
+# Links 
+
+* https://xcelab.net/rm/statistical-rethinking/ (most of the content has been adapted from here)
+* https://docs.pymc.io/
+* https://en.wikipedia.org/wiki/Papers,_Please (images and narrative framework)
 
 # Requirements 
 
