@@ -8,11 +8,12 @@ import matplotlib.pyplot as plt
 
 from modules.visuals import visualize_regression_lines
 
+
 class AbastractModel(ABC):
     """
     """
     @abstractmethod
-    def generate_model(self):
+    def generate_model(self, X, y):
         """
         """
         raise NotImplementedError('Subclass Model has to implement \
@@ -42,10 +43,11 @@ class AbastractModel(ABC):
 
             setattr(self, parameter_name, parameter_values)
 
-        self.generate_model(
+        model = self.generate_model(
             X=self.X,
             y=self.y
         )
+        setattr(self, 'model', model)
 
     def fit(self, X, y, MAP=True, **kwargs):
         """
@@ -59,41 +61,79 @@ class AbastractModel(ABC):
                 traces = pm.sample(**kwargs)
                 setattr(self, 'traces', traces)
 
+    def predict(self, X, y):
+        """
+        """
+        with self.generate_model(X, y):
+            if self.map:
+                posterior_predictions = pm.sample_posterior_predictive(
+                    self.map_estimate
+                )
+            else:
+                posterior_predictions = pm.sample_posterior_predictive(
+                    self.traces
+                )
+        setattr(self, 'posterior_predictions', posterior_predictions)
+        return posterior_predictions
+
     def show_prior_summary(self, n_lines=100, figsize=(10, 8), **kwargs):
         """
         """
+        with self.model:
+            prior_checks = pm.sample_prior_predictive(
+                samples=n_lines
+            )
+            setattr(self, 'prior_checks', prior_checks)
+
         visualize_regression_lines(
             X=self.X,
             y=self.y,
-            intercepts=self.prior_checks['Intercpet'],
+            intercepts=self.prior_checks['Intercept'],
             slopes=self.prior_checks['Slope'],
             overlay=True,
-            n_lines=n_lines,
             figsize=figsize,
             title='Prior Regression Lines',
+            logistic=self.logistic,
             **kwargs
         )
 
     def show_posterior_summary(self, figsize=(10, 8), **kwargs):
         """
         """
+        self.print_model_summary()
         if self.map:
-            self.print_model_summary()
             visualize_regression_lines(
                 X=self.X,
                 y=self.y,
-                intercepts=[self.map_estimate['Intercpet']],
+                intercepts=[self.map_estimate['Intercept']],
                 slopes=[self.map_estimate['Slope']],
                 figsize=figsize,
                 overlay=False,
+                predictions=None,
                 title='Posterior MAP Regression Line',
-                n_lines=1,
+                logistic=self.logistic,
                 **kwargs
             )
         else:
-            self.print_model_summary()
             with self.model:
+                posterior_checks = pm.sample_posterior_predictive(
+                    self.traces,
+                    var_names=['Intercept', 'Slope', 'y']
+                )
+                setattr(self, 'posterior_checks', posterior_checks)
                 pm.plot_trace(self.traces)
+            visualize_regression_lines(
+                X=self.X,
+                y=self.y,
+                intercepts=self.posterior_checks['Intercept'],
+                slopes=self.posterior_checks['Slope'],
+                figsize=figsize,
+                overlay=False,
+                predictions=posterior_checks['y'],
+                title='Posterior Regression Lines',
+                logistic=self.logistic,
+                **kwargs
+            )
 
     def show_plate(self):
         """

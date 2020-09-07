@@ -7,15 +7,177 @@ import seaborn as sns
 
 from IPython.display import display, clear_output
 
+from modules.stats.backend import compute_sigmoid
+from modules.stats.backend import compute_grid, compute_grid_growth
+from modules.stats.backend import compute_binom_max_likelyhood
+from modules.stats.backend import compute_MC_sampling
 from modules.stats.backend import compute_stats, compute_sp_posterior
 
 
-def visulize_quadratic_approx(parameter, plausibility, figsize=(10, 8),
+def visualize_grid_search(n_para, n_approx_points=100,
+                          figsize=(15, 8), **kwargs):
+    """
+    """
+    grid = compute_grid(
+        para_1=np.linspace(0, 1, 100),
+        para_2=np.linspace(0, 1, 100)
+    )
+
+    grid_growth = compute_grid_growth(
+        n_para=n_para,
+        n_approx_points=n_approx_points
+    )
+
+    sns.set(style='white', font_scale=1.5)
+    fig, axs = plt.subplots(1, 3, figsize=figsize, **kwargs)
+
+    axs[0].scatter(
+        np.linspace(0, 1, 100),
+        [0.5] * n_approx_points,
+        s=0.5,
+        c='r'
+    )
+    axs[0].set_title('Single Parameter Grid')
+    axs[0].set_xlabel('$\\theta$')
+    axs[0].set_yticks([])
+
+    axs[1].scatter(
+        grid[:, 0],
+        grid[:, 1],
+        0.5,
+        c='r'
+    )
+    axs[1].set_title('Two Parameters Grid')
+    axs[1].set_xlabel('$\\theta 1$')
+    axs[1].set_ylabel('$\\theta 2$')
+
+    axs[2].plot(
+        [i for i in range(1, n_para)],
+        np.log10(grid_growth),
+        c='r'
+    )
+    axs[2].set_title('Grid Growth')
+    axs[2].set_xticks([i for i in range(1, n_para)])
+    axs[2].set_xlabel('Number of Parameters')
+    axs[2].set_ylabel('$log10$(Points in the Grid)')
+
+    plt.tight_layout()
+    plt.show()
+
+    return None
+
+
+def visulize_quadratic_approx(parameter_space, n, k, figsize=(10, 8),
                              **kwargs):
     """
     """
+    plausibility = binom.pmf(
+        k=k,
+        n=n,
+        p=parameter_space
+    )
     sns.set(style='white', font_scale=1.5)
-    pass
+    fig = plt.figure(figsize=figsize)
+    plt.plot(
+        parameter_space,
+        plausibility,
+        **kwargs
+    )
+    plt.xlabel('$\\theta$')
+    plt.ylabel('Likelyhood')
+    plt.show()
+    input()
+    solution, iterations = compute_binom_max_likelyhood(
+        0.0,
+        n=n,
+        k=k
+
+    )
+    for iteration in iterations:
+
+        likelyhood = binom.pmf(
+            k=k,
+            n=n,
+            p=iteration
+        )
+
+        fig = plt.figure(figsize=figsize)
+        plt.plot(
+            parameter_space,
+            plausibility,
+            **kwargs
+        )
+        plt.scatter(
+            iteration,
+            likelyhood,
+            c='r'
+        )
+        circle = plt.Circle(
+            (iteration, likelyhood),
+            0.01,
+            color='r',
+            fill=False
+        )
+        plt.gcf().gca().add_artist(circle)
+        plt.xlabel('$\\theta$')
+        plt.ylabel('Likelyhood')
+        plt.title(
+            f'$\\theta$ {round(iteration, 3)} Likely: {round(likelyhood, 3)}'
+        )
+
+        display(fig)
+        clear_output(wait=True)
+        plt.close()
+        plt.pause(0.5)
+
+def visualize_MC_sampling(frozen_distro, max_sample=1000, iterations=100,
+                          figsize=(10, 8), **kwargs):
+    """
+    """
+    sns.set(style='white', font_scale=1.5)
+    sampled = compute_MC_sampling(
+        frozen_distro=frozen_distro,
+        max_sample=max_sample,
+        iterations=iterations
+    )
+    fig = plt.figure(figsize=figsize)
+    sns.distplot(
+        frozen_distro,
+        kde=True,
+        hist=False,
+        color='r'
+    )
+    plt.xlabel('$\\theta$')
+    plt.yticks([])
+    plt.show()
+    input()
+    for sample_size, sample in sampled.items():
+
+        fig = plt.figure(figsize=figsize)
+        sns.distplot(
+            frozen_distro,
+            kde=True,
+            hist=False,
+            color='r'
+        )
+        sns.distplot(
+            sample,
+            kde=True,
+            hist=False,
+            color='b',
+            **kwargs
+        )
+
+        plt.xlabel('$\\theta$')
+        plt.yticks([])
+        plt.title(
+            f'Samples: {sample_size}'
+        )
+        display(fig)
+        clear_output(wait=True)
+        plt.close()
+        plt.pause(0.5)
+
 
 def visualize_priors_effect(parameter_space, priors, likelyhood,
                             figsize=(10, 8), **kwargs):
@@ -61,6 +223,7 @@ def visualize_priors_effect(parameter_space, priors, likelyhood,
     plt.show()
 
     return None
+
 
 def visualize_binomial_update(n_tests, parameter_space=np.linspace(0, 1, 100),
                               figsize=(10, 8), auto=False, **kwargs):
@@ -133,6 +296,7 @@ def visualize_binomial_update(n_tests, parameter_space=np.linspace(0, 1, 100),
 
     return None
 
+
 def visualize_bivariate_regression(X, y, X_label='', y_label='', title='',
                                    figsize=(10, 8), **kwargs):
     """
@@ -148,35 +312,91 @@ def visualize_bivariate_regression(X, y, X_label='', y_label='', title='',
 
     return None
 
-def visualize_regression_lines(X, y, intercepts, slopes, title, figsize=(10, 8),
-                               overlay=True, n_lines=100, **kwargs):
-    """
-    """
 
-    predictor = np.linspace(X.min(), X.max(), len(X))
+def visualize_regression_lines(X, y, intercepts, slopes, title, figsize=(10, 8),
+                               overlay=True, predictions=None, logistic=False,
+                               **kwargs):
+    """
+    """
     alpha_1 = 0.3 if overlay else 1
     alpha_2 = 1 if overlay else 0.3
 
     sns.set(style='white', font_scale=1.5)
     plt.figure(figsize=figsize)
-    for intercept, slope  in zip(intercepts, slopes):
 
-        predictions = intercept + slope * predictor
+    predictor = np.linspace(X.min(), X.max(), len(X))
+
+    if predictions is not None:
+        lines = intercepts.reshape(-1, 1) + slopes.reshape(-1, 1) * predictor.reshape(1, -1)
+        if logistic:
+            lines = np.apply_along_axis(
+                compute_sigmoid,
+                axis=0,
+                arr=lines
+            )
+
+        lines_mean = lines.mean(axis=0)
+        lines_percentiles = np.percentile(lines, [5, 90], axis=0)
+        predictions_percentiles = np.percentile(predictions, [5, 90], axis=0)
+
         plt.plot(
             predictor,
-            predictions,
+            lines_mean,
             alpha=alpha_1,
-            **kwargs
+            c='r'
         )
-
-        plt.scatter(
-            X,
-            y,
-            alpha=alpha_2
+        plt.plot(
+            predictor,
+            lines_percentiles[0, :],
+            alpha=alpha_1 / 2,
+            linestyle='dotted',
+            color='r'
         )
+        plt.plot(
+            predictor,
+            lines_percentiles[1, :],
+            alpha=alpha_1 / 2,
+            linestyle='dotted',
+            color='r'
+        )
+        if not logistic:
+            plt.plot(
+                X,
+                predictions_percentiles[0, :],
+                alpha=alpha_1 / 2,
+                linestyle='dashed',
+                color='b'
+            )
+            plt.plot(
+                X,
+                predictions_percentiles[1, :],
+                alpha=alpha_1 / 2,
+                linestyle='dashed',
+                color='b'
+            )
 
-    plt.xlim(X.min(), X.max())
-    plt.ylim(y.min(), y.max())
+    else:
+        for intercept, slope  in zip(intercepts, slopes):
+
+            line = intercept + slope * predictor
+            if logistic:
+                line = compute_sigmoid(line)
+            plt.plot(
+                predictor,
+                line,
+                alpha=alpha_1,
+                **kwargs
+            )
+
+    plt.scatter(
+        X,
+        y,
+        alpha=alpha_2,
+        c='b'
+    )
+
+    #plt.xlim(X.min(), X.max())
+    #plt.ylim(y.min(), y.max())
     plt.title(title)
     plt.xlabel('Predictor X')
     plt.ylabel('Outcome y')

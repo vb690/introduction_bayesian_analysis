@@ -1,4 +1,70 @@
 import numpy as np
+from scipy.stats import binom
+from scipy.optimize import fmin
+
+
+def compute_sigmoid(array):
+    """
+    """
+    sigmoid = 1/(1 + np.exp(-array))
+    return sigmoid
+
+
+def compute_binom_neg_log_likelyhood(p, n=16, k=9):
+    """
+    """
+    negative_log_likelyhood = - binom.logpmf(
+        k=k,
+        n=n,
+        p=p
+    )
+    return negative_log_likelyhood
+
+
+def compute_binom_max_likelyhood(start, n=16, k=9):
+    """
+    """
+    solution, iterations =  fmin(
+        compute_binom_neg_log_likelyhood,
+        start,
+        retall=True
+    )
+    solution = solution[0]
+    iterations = [iter[0] for iter in iterations]
+    return solution, iterations
+
+
+def compute_MC_sampling(frozen_distro, max_sample=1000, iterations=100):
+    """
+    """
+    sampled = {}
+    samples = np.linspace(1, max_sample, iterations, dtype=int)
+    for sample_size in samples:
+
+        sampled[sample_size] = np.random.choice(frozen_distro, sample_size)
+
+    return sampled
+
+
+def compute_grid(para_1, para_2):
+    """
+    """
+    grid = []
+    for p_1 in para_1:
+
+        for p_2 in para_2:
+
+            grid.append([p_1, p_2])
+
+    grid = np.array(grid)
+    return grid
+
+
+def compute_grid_growth(n_para, n_approx_points):
+    """
+    """
+    grid_growth = [n_approx_points ** power for power in range(1, n_para)]
+    return grid_growth
 
 
 def compute_stats(array, ci=0.95, precis=2, sampling_prob=None):
