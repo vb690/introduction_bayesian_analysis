@@ -31,7 +31,10 @@ Workshop on introductory concepts in bayesian data analysis - presented at IGGI 
 * https://en.wikipedia.org/wiki/Papers,_Please (images and narrative framework)
 
 # Requirements 
-
+* Download your local version of the workshop repository
+* Install anaconda https://docs.anaconda.com/anaconda/install/
+* Open the Anaconda Powershell Prompt in the workshop directory
+* Then from the Prompt
 ``` python
 # create anaconda environment
 conda create -n workshop_env python=3.6
@@ -40,5 +43,8 @@ conda create -n workshop_env python=3.6
 conda activate workshop_env
 
 # install the requirements
-conda install -r requirements.txt
+conda install --file requirements.txt
+
+# open jupyter 
+jupyter notebook
 ```
