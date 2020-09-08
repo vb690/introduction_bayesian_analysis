@@ -1,4 +1,9 @@
 # Bayesian data analysis: an introductory workshop
+  
+<p align="center">
+  <img width="906" height="300" src="https://github.com/vb690/introduction_bayesian_analysis/blob/master/results/figures/presentation/header.png">
+</p>
+
 Workshop on introductory concepts in bayesian data analysis - presented at IGGI Conference 2020
 
 # Agenda
