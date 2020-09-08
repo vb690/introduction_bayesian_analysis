@@ -1,10 +1,6 @@
 from abc import ABC, abstractmethod
 
-import numpy as np
-
 import pymc3 as pm
-
-import matplotlib.pyplot as plt
 
 from modules.visuals import visualize_regression_lines
 
@@ -33,7 +29,7 @@ class AbastractModel(ABC):
             print('')
             with self.model:
                 summary = pm.summary(self.traces)
-            summary = summary[['mean', 'sd', 'hdi_3%', 'hdi_97%']]
+            summary = summary[['mean', 'sd', 'hpd_3%', 'hpd_97%']]
             print(summary)
 
     def riparametrize_priors(self, new_parameters):

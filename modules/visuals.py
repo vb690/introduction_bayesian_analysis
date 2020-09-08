@@ -9,7 +9,7 @@ from IPython.display import display, clear_output
 
 from modules.stats.backend import compute_sigmoid
 from modules.stats.backend import compute_grid, compute_grid_growth
-from modules.stats.backend import compute_binom_max_likelyhood
+from modules.stats.backend import compute_binom_max_likelihood
 from modules.stats.backend import compute_MC_sampling
 from modules.stats.backend import compute_stats, compute_sp_posterior
 
@@ -19,8 +19,8 @@ def visualize_grid_search(n_para, n_approx_points=100,
     """
     """
     grid = compute_grid(
-        para_1=np.linspace(0, 1, 100),
-        para_2=np.linspace(0, 1, 100)
+        para_1=np.linspace(0, 1, n_approx_points),
+        para_2=np.linspace(0, 1, n_approx_points)
     )
 
     grid_growth = compute_grid_growth(
@@ -32,7 +32,7 @@ def visualize_grid_search(n_para, n_approx_points=100,
     fig, axs = plt.subplots(1, 3, figsize=figsize, **kwargs)
 
     axs[0].scatter(
-        np.linspace(0, 1, 100),
+        np.linspace(0, 1, n_approx_points),
         [0.5] * n_approx_points,
         s=0.5,
         c='r'
@@ -53,7 +53,7 @@ def visualize_grid_search(n_para, n_approx_points=100,
 
     axs[2].plot(
         [i for i in range(1, n_para)],
-        np.log10(grid_growth),
+        [np.log10(float(n_points)) for n_points in grid_growth],
         c='r'
     )
     axs[2].set_title('Grid Growth')
@@ -68,7 +68,7 @@ def visualize_grid_search(n_para, n_approx_points=100,
 
 
 def visulize_quadratic_approx(parameter_space, n, k, figsize=(10, 8),
-                             **kwargs):
+                              **kwargs):
     """
     """
     plausibility = binom.pmf(
@@ -84,10 +84,10 @@ def visulize_quadratic_approx(parameter_space, n, k, figsize=(10, 8),
         **kwargs
     )
     plt.xlabel('$\\theta$')
-    plt.ylabel('Likelyhood')
+    plt.yticks([])
     plt.show()
     input()
-    solution, iterations = compute_binom_max_likelyhood(
+    solution, iterations = compute_binom_max_likelihood(
         0.0,
         n=n,
         k=k
@@ -95,7 +95,7 @@ def visulize_quadratic_approx(parameter_space, n, k, figsize=(10, 8),
     )
     for iteration in iterations:
 
-        likelyhood = binom.pmf(
+        likelihood = binom.pmf(
             k=k,
             n=n,
             p=iteration
@@ -109,26 +109,27 @@ def visulize_quadratic_approx(parameter_space, n, k, figsize=(10, 8),
         )
         plt.scatter(
             iteration,
-            likelyhood,
+            likelihood,
             c='r'
         )
         circle = plt.Circle(
-            (iteration, likelyhood),
+            (iteration, likelihood),
             0.01,
             color='r',
             fill=False
         )
         plt.gcf().gca().add_artist(circle)
         plt.xlabel('$\\theta$')
-        plt.ylabel('Likelyhood')
+        plt.yticks([])
         plt.title(
-            f'$\\theta$ {round(iteration, 3)} Likely: {round(likelyhood, 3)}'
+            f'$\\theta$ {round(iteration, 3)} Likely: {round(likelihood, 3)}'
         )
 
         display(fig)
         clear_output(wait=True)
         plt.close()
         plt.pause(0.5)
+
 
 def visualize_MC_sampling(frozen_distro, max_sample=1000, iterations=100,
                           figsize=(10, 8), **kwargs):
@@ -179,7 +180,7 @@ def visualize_MC_sampling(frozen_distro, max_sample=1000, iterations=100,
         plt.pause(0.5)
 
 
-def visualize_priors_effect(parameter_space, priors, likelyhood,
+def visualize_priors_effect(parameter_space, priors, likelihood,
                             figsize=(10, 8), **kwargs):
     """
     """
@@ -187,23 +188,23 @@ def visualize_priors_effect(parameter_space, priors, likelyhood,
     fig, axs = plt.subplots(1, len(priors), figsize=figsize)
     for prior_key, ax in zip(priors, axs.flatten()):
 
-            posterior = compute_sp_posterior(
+        posterior = compute_sp_posterior(
                 prior=priors[prior_key],
-                likelyhood=likelyhood,
+                likelihood=likelihood,
             )
-            outcomes = {
-                'Prior': priors[prior_key],
-                'Likelyhood': likelyhood,
-                'Posterior': posterior,
-            }
+        outcomes = {
+            'Prior': priors[prior_key],
+            'likelihood': likelihood,
+            'Posterior': posterior,
+        }
 
-            for outcome_name, outcome in outcomes.items():
+        for outcome_name, outcome in outcomes.items():
 
-                ax.plot(
-                    parameter_space,
-                    outcome / outcome.sum(),
-                    label=outcome_name
-                )
+            ax.plot(
+                parameter_space,
+                outcome / outcome.sum(),
+                label=outcome_name
+            )
 
             ax.set_yticks([])
             ax.set_xlim(0, 1)
@@ -313,9 +314,9 @@ def visualize_bivariate_regression(X, y, X_label='', y_label='', title='',
     return None
 
 
-def visualize_regression_lines(X, y, intercepts, slopes, title, figsize=(10, 8),
-                               overlay=True, predictions=None, logistic=False,
-                               **kwargs):
+def visualize_regression_lines(X, y, intercepts, slopes, title,
+                               figsize=(10, 8), overlay=True, predictions=None,
+                               logistic=False, **kwargs):
     """
     """
     alpha_1 = 0.3 if overlay else 1
@@ -327,7 +328,8 @@ def visualize_regression_lines(X, y, intercepts, slopes, title, figsize=(10, 8),
     predictor = np.linspace(X.min(), X.max(), len(X))
 
     if predictions is not None:
-        lines = intercepts.reshape(-1, 1) + slopes.reshape(-1, 1) * predictor.reshape(1, -1)
+        lines = intercepts.reshape(-1, 1) + \
+                slopes.reshape(-1, 1) * predictor.reshape(1, -1)
         if logistic:
             lines = np.apply_along_axis(
                 compute_sigmoid,
@@ -376,7 +378,7 @@ def visualize_regression_lines(X, y, intercepts, slopes, title, figsize=(10, 8),
             )
 
     else:
-        for intercept, slope  in zip(intercepts, slopes):
+        for intercept, slope in zip(intercepts, slopes):
 
             line = intercept + slope * predictor
             if logistic:
@@ -395,8 +397,6 @@ def visualize_regression_lines(X, y, intercepts, slopes, title, figsize=(10, 8),
         c='b'
     )
 
-    #plt.xlim(X.min(), X.max())
-    #plt.ylim(y.min(), y.max())
     plt.title(title)
     plt.xlabel('Predictor X')
     plt.ylabel('Outcome y')

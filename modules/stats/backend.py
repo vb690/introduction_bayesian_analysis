@@ -10,22 +10,22 @@ def compute_sigmoid(array):
     return sigmoid
 
 
-def compute_binom_neg_log_likelyhood(p, n=16, k=9):
+def compute_binom_neg_log_likelihood(p, n=16, k=9):
     """
     """
-    negative_log_likelyhood = - binom.logpmf(
+    negative_log_likelihood = - binom.logpmf(
         k=k,
         n=n,
         p=p
     )
-    return negative_log_likelyhood
+    return negative_log_likelihood
 
 
-def compute_binom_max_likelyhood(start, n=16, k=9):
+def compute_binom_max_likelihood(start, n=16, k=9):
     """
     """
-    solution, iterations =  fmin(
-        compute_binom_neg_log_likelyhood,
+    solution, iterations = fmin(
+        compute_binom_neg_log_likelihood,
         start,
         retall=True
     )
@@ -78,7 +78,7 @@ def compute_stats(array, ci=0.95, precis=2, sampling_prob=None):
         )
     else:
         sampled_array = np.array(array)
-    quantiles =  np.quantile(sampled_array, [1.0 - ci, ci])
+    quantiles = np.quantile(sampled_array, [1.0 - ci, ci])
     stats = {
         'mean': sampled_array.mean(),
         'std': sampled_array.std(),
@@ -93,15 +93,15 @@ def compute_stats(array, ci=0.95, precis=2, sampling_prob=None):
     return stats
 
 
-def compute_sp_posterior(prior, likelyhood):
+def compute_sp_posterior(prior, likelihood):
     """ Compute posterior probability
 
     Args:
         - prior:
-        - likelyhood:
+        - likelihood:
     Returns:
         - posterior:
     """
-    posterior = prior * likelyhood
+    posterior = prior * likelihood
     posterior = posterior / np.sum(posterior)
     return posterior

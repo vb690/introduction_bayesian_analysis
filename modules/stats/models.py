@@ -1,7 +1,5 @@
-from scipy.stats import binom
 import pymc3 as pm
 
-from modules.stats.backend import compute_sp_posterior
 from modules.utils.models_utils import AbastractModel
 
 
@@ -9,12 +7,12 @@ class BivariateNormalRegression(AbastractModel):
     """
     """
     def __init__(self, X, y, intercept_prior=(0, 100), slope_prior=(0, 100),
-                 likelyhood_sigma_prior=100, fit_intercept=True):
+                 likelihood_sigma_prior=100, fit_intercept=True):
         """
         """
         self.intercept_prior = intercept_prior
         self.slope_prior = slope_prior
-        self.likelyhood_sigma_prior = likelyhood_sigma_prior
+        self.likelihood_sigma_prior = likelihood_sigma_prior
         self.fit_intercept = fit_intercept
         self.X = X
         self.y = y
@@ -45,16 +43,16 @@ class BivariateNormalRegression(AbastractModel):
             mu = intercept + slope * X
 
             sigma = pm.Exponential(
-                name='Likelyhood Sigma',
-                lam=self.likelyhood_sigma_prior
+                name='likelihood Sigma',
+                lam=self.likelihood_sigma_prior
             )
 
-            likelyhood = pm.Normal(
+            likelihood = pm.Normal(
                 name='y',
                 mu=mu,
                 sd=sigma,
                 observed=y
-           )
+            )
 
         return model
 
@@ -99,11 +97,11 @@ class BivariateLogisticRegression(AbastractModel):
 
             p = pm.math.sigmoid(theta)
 
-            likelyhood = pm.Bernoulli(
+            likelihood = pm.Bernoulli(
                 name='y',
                 p=p,
                 observed=y
-           )
+            )
 
         return model
 
