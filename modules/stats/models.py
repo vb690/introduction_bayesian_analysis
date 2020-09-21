@@ -105,6 +105,53 @@ class BivariateLogisticRegression(AbastractModel):
 
         return model
 
+class PoissonAR1(AbastractModel):
+    """
+    """
+    def __init__(self, X, y, slope_prior, innovation_prior):
+        """
+        """
+        self.slope_prior = slope_prior
+        self.innovation_prior = innovation_prior
+        self.X = X
+        self.y = y
+        self.model = self.generate_model(X, y)
+
+    def generate_model(self, X, y):
+        """
+        """
+        with pm.Model() as ar_model:
+
+            slope = pm.Beta(
+                alpha=self.slope_prior[0],
+                beta=self.slope_prior[1],
+                name='Slope'
+            )
+
+            innovation = pm.Normal(
+                mu=self.innovation_prior[0],
+                sigma=self.innovation_prior[1],
+                name='Innovation'
+            )
+
+            lam = slope*X + innovation
+            lam = pm.math.maximum(0, lam)
+
+            outcome = pm.Poisson(
+                mu=lam,
+                observed=y,
+                name='y'
+            )
+
+        return ar_model
+
+    def show_posterior_summary(self, figsize=(10, 8), **kwargs):
+        """
+        """
+        self.print_model_summary()
+        if not self.map:
+            with self.model:
+                pm.plot_trace(self.traces)
 
 class CompoundModel(AbastractModel):
     """

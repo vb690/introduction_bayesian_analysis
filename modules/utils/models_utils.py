@@ -29,7 +29,10 @@ class AbastractModel(ABC):
             print('')
             with self.model:
                 summary = pm.summary(self.traces)
-            summary = summary[['mean', 'sd', 'hpd_3%', 'hpd_97%']]
+            try:
+                summary = summary[['mean', 'sd', 'hdi_3%', 'hdi_97%']]
+            except:
+                summary = summary
             print(summary)
 
     def riparametrize_priors(self, new_parameters):
@@ -57,17 +60,19 @@ class AbastractModel(ABC):
                 traces = pm.sample(**kwargs)
                 setattr(self, 'traces', traces)
 
-    def predict(self, X, y):
+    def predict(self, X, y, verbose=True):
         """
         """
         with self.generate_model(X, y):
             if self.map:
                 posterior_predictions = pm.sample_posterior_predictive(
-                    self.map_estimate
+                    self.map_estimate,
+                    progressbar=verbose
                 )
             else:
                 posterior_predictions = pm.sample_posterior_predictive(
-                    self.traces
+                    self.traces,
+                    progressbar=verbose
                 )
         setattr(self, 'posterior_predictions', posterior_predictions)
         return posterior_predictions

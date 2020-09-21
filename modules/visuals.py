@@ -226,15 +226,17 @@ def visualize_priors_effect(parameter_space, priors, likelihood,
     return None
 
 
-def visualize_binomial_update(n_tests, parameter_space=np.linspace(0, 1, 100),
-                              figsize=(10, 8), auto=False, **kwargs):
+def visualize_binomial_update(n_tests, parameter_name, remapper,
+                              outcome_p=[0.5, 0.5],
+                              parameter_space=np.linspace(0, 1, 100),
+                              hist=True, figsize=(10, 8),
+                              auto=False, **kwargs):
     """ Visualize the prior update.
     """
     sns.set(style='white', font_scale=1.5)
-    remapper = {0: 'Healthy', 1: 'Sick'}
     text_box = '''
-        Number of Tests: {}\n
-        Number of Positives: {}\n
+        Number Total: {}\n
+        Number {}: {}\n
         MAP: {}\n
         Upper: {}\n
         Lower: {}
@@ -259,21 +261,29 @@ def visualize_binomial_update(n_tests, parameter_space=np.linspace(0, 1, 100),
         )
 
         fig = plt.figure(figsize=figsize)
-        plt.plot(
-            parameter_space,
-            prob,
-            **kwargs
-        )
+        if hist:
+            sns.barplot(
+                parameter_space,
+                prob,
+                **kwargs
+            )
+        else:
+            plt.plot(
+                parameter_space,
+                prob,
+                **kwargs
+            )
+            plt.xticks(parameter_space)
         plt.yticks([])
-        plt.xlim(0, 1)
         plt.ylabel('Plausibility')
-        plt.xlabel('Proportion of Sick People')
+        plt.xlabel(f'Proportion of {parameter_name}')
 
         plt.text(
             1.05,
             0.9,
             text_box.format(
                 tests,
+                parameter_name,
                 total_tests_outcomes,
                 stats['median'],
                 stats['upper'],
@@ -283,9 +293,12 @@ def visualize_binomial_update(n_tests, parameter_space=np.linspace(0, 1, 100),
             transform=fig.transFigure
         )
         if tests > 0:
-            plt.title(f'Test Result: {remapper[test_outcome]}')
+            plt.title(f'Observation: {remapper[test_outcome]}')
 
-        test_outcome = np.random.choice([0, 1])
+        test_outcome = np.random.choice(
+            [0, 1],
+            p=outcome_p
+        )
         total_tests_outcomes += test_outcome
 
         display(fig)
@@ -307,6 +320,53 @@ def visualize_bivariate_regression(X, y, X_label='', y_label='', title='',
     plt.scatter(X, y)
 
     plt.title(title)
+    plt.ylabel(y_label)
+    plt.xlabel(X_label)
+    plt.show()
+
+    return None
+
+def visualize_time_series(X, y, prediction_point, X_label, y_label,
+                          prediction=None, figsize=(8, 8)):
+    """
+    """
+    sns.set(style='white', font_scale=1.5)
+    plt.figure(figsize=figsize)
+
+    plt.plot(
+        X[:prediction_point],
+        y[:prediction_point],
+        c='b'
+    )
+    plt.plot(
+        X[prediction_point:],
+        y[prediction_point:],
+        alpha=0.5,
+        c='b',
+        linestyle='--'
+    )
+
+    if prediction is not None:
+        plt.plot(
+            X[prediction_point:],
+            prediction.mean(axis=0),
+            c='b'
+        )
+        plt.plot(
+            X[prediction_point:],
+            np.percentile(prediction, 5, axis=0),
+            alpha=0.5,
+            c='r',
+            linestyle='--'
+        )
+        plt.plot(
+            X[prediction_point:],
+            np.percentile(prediction, 90, axis=0),
+            alpha=0.5,
+            c='r',
+            linestyle='--'
+        )
+    plt.axvline(prediction_point, c='r', linestyle='--')
     plt.ylabel(y_label)
     plt.xlabel(X_label)
     plt.show()
@@ -402,4 +462,38 @@ def visualize_regression_lines(X, y, intercepts, slopes, title,
     plt.ylabel('Outcome y')
     plt.show()
 
+    return None
+
+
+def visualize_bivariate_parameter_grid(parameter_1, parameter_2,
+                                       parameter_1_name, parameter_2_name,
+                                       height=10):
+    """
+    """
+    sns.set(style='white', font_scale=1.5)
+
+    g = sns.JointGrid(
+        x=parameter_1,
+        y=parameter_2,
+        space=0,
+        height=height
+    )
+    g.plot_joint(
+        sns.kdeplot,
+        clip=(
+            (parameter_1.min(), parameter_1.max()),
+            (parameter_2.min(), parameter_2.max())),
+        fill=True,
+        thresh=0,
+        levels=100,
+        cmap='rocket'
+    )
+    g.plot_marginals(
+        sns.histplot,
+        color='#03051A',
+        bins=25
+    )
+    g.set_axis_labels(parameter_1_name, parameter_2_name)
+
+    plt.show()
     return None
