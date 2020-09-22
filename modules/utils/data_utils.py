@@ -6,6 +6,29 @@ import pandas as pd
 from modules.stats.backend import compute_sigmoid
 
 
+def generate_polynomial(X,  degree=3, noise_ratio=1):
+    """
+    """
+    intercept = np.random.normal()
+    coefficients = {coef: np.random.normal() for coef in range(1, degree+1)}
+
+    y=[]
+    for x in X:
+
+        mu = intercept
+
+        for coef in range(1, degree+1):
+
+            mu += coefficients[coef]*(x**coef)
+
+        y.append(float(mu))
+
+    y = np.array(y)
+    y += np.random.normal(y.mean(), y.std() * noise_ratio, len(y))
+    y = (y - y.mean()) / y.std()
+    return X, y
+
+
 def generate_poisson_ar(lam_int, slope_a, slope_b, mu_noise, sigma_noise,
                         burn_factor=2, time_steps=48):
     """

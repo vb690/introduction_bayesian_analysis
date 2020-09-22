@@ -15,6 +15,18 @@ class AbastractModel(ABC):
         raise NotImplementedError('Subclass Model has to implement \
                                    generate_model method')
 
+    def get_model(self):
+        """
+        """
+        model = self.model
+        return model
+
+    def get_traces(self):
+        """
+        """
+        traces = self.traces
+        return traces
+
     def print_model_summary(self):
         """
         """
@@ -64,16 +76,15 @@ class AbastractModel(ABC):
         """
         """
         with self.generate_model(X, y):
-            if self.map:
-                posterior_predictions = pm.sample_posterior_predictive(
-                    self.map_estimate,
-                    progressbar=verbose
-                )
-            else:
+            try:
                 posterior_predictions = pm.sample_posterior_predictive(
                     self.traces,
                     progressbar=verbose
                 )
+            except Exception:
+                print('Problem with traces')
+                posterior_predictions = None
+
         setattr(self, 'posterior_predictions', posterior_predictions)
         return posterior_predictions
 

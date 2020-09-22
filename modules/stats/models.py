@@ -1,3 +1,5 @@
+import numpy as np
+
 import pymc3 as pm
 
 from modules.utils.models_utils import AbastractModel
@@ -152,6 +154,68 @@ class PoissonAR1(AbastractModel):
         if not self.map:
             with self.model:
                 pm.plot_trace(self.traces)
+
+class PolynomialRegression(AbastractModel):
+    """
+    """
+    def __init__(self, X, y, cubic=False, intercept_prior=(0, 1),
+                 slopes_prior=(0, 1), sigma_prior=1):
+        """
+        """
+        self.X = X
+        self.y = y
+        self.cubic = cubic
+        self.intercept_prior = intercept_prior
+        self.slopes_prior = slopes_prior
+        self.sigma_prior = sigma_prior
+        self.model = self.generate_model(X, y, cubic)
+
+    def generate_model(self, X, y, cubic=False):
+        """
+        """
+        with pm.Model() as polynomial_model:
+
+            intercept = pm.Normal(
+                name='Intercept',
+                mu=self.intercept_prior[0],
+                sd=self.intercept_prior[1]
+            )
+            slope = pm.Normal(
+                name='Slope',
+                mu=self.slopes_prior[0],
+                sd=self.slopes_prior[1]
+            )
+            slope_1 = pm.Normal(
+                name='Slope_1',
+                mu=self.slopes_prior[0],
+                sd=self.slopes_prior[1]
+            )
+
+            if not cubic:
+                mu = intercept + X*slope + np.power(X, 2)*slope_1
+            else:
+                slope_2 = pm.Normal(
+                    name='Slope_2',
+                    mu=self.slopes_prior[0],
+                    sd=self.slopes_prior[1]
+                )
+                mu = intercept + X*slope + np.power(X, 2)*slope_1 + \
+                    np.power(X, 3)*slope_2
+
+            sigma = pm.Exponential(
+                name='Sigma',
+                lam=self.sigma_prior
+            )
+
+            likelihood = pm.Normal(
+                name='y',
+                mu=mu,
+                sd=sigma,
+                observed=y
+            )
+
+            return polynomial_model
+
 
 class CompoundModel(AbastractModel):
     """
