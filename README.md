@@ -60,15 +60,15 @@ Application-oriented version, more suitable for being delivered in industry sett
 
 # Links 
 
-* https://xcelab.net/rm/statistical-rethinking/ (most of the content has been adapted from here)
-* https://docs.pymc.io/
-* https://en.wikipedia.org/wiki/Papers,_Please (images and narrative framework for the University Workshop version)
+* [Statistical Rethinking](https://xcelab.net/rm/statistical-rethinking/) (most of the content has been adapted from here)
+* [PyMC3](https://docs.pymc.io/)
+* [Papers, Please](https://en.wikipedia.org/wiki/Papers,_Please) (images and narrative framework for the University Workshop version)
 
 # Requirements 
-* Download your local version of the workshop repository
-* Install anaconda https://docs.anaconda.com/anaconda/install/
-* Open the Anaconda Powershell Prompt in the workshop directory
-* Then from the Prompt
+1. Download your local version of the workshop repository
+2. Install [Anaconda](https://docs.anaconda.com/anaconda/install/)
+3. Open the Anaconda Powershell Prompt in the workshop directory
+4. Then from the Prompt
 ``` python
 # create anaconda environment
 conda create -n workshop_env python=3.6
@@ -82,3 +82,5 @@ conda install --file requirements.txt
 # open jupyter 
 jupyter notebook
 ```
+5. Navigate to and open the .ipynb file of interest 
+6. Read the `Usage` section in the [RISE](https://rise.readthedocs.io/en/5.0.0/README.html#) documentation for navigating the notebook slides.
