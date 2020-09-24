@@ -27,7 +27,7 @@ class AbastractModel(ABC):
         traces = self.traces
         return traces
 
-    def print_model_summary(self):
+    def print_model_summary(self, parameters_name):
         """
         """
         if self.map:
@@ -35,12 +35,16 @@ class AbastractModel(ABC):
             print('')
             for parameter_name, parameter_map in self.map_estimate.items():
 
-                print(f'{parameter_name}: {parameter_map}')
+                if parameter_name in parameters_name:
+                    print(f'{parameter_name}: {parameter_map}')
         else:
             print('MCMC Estimates')
             print('')
             with self.model:
-                summary = pm.summary(self.traces)
+                summary = pm.summary(
+                    self.traces,
+                    var_names=parameters_name
+                )
             try:
                 summary = summary[['mean', 'sd', 'hdi_3%', 'hdi_97%']]
             except:
@@ -60,7 +64,7 @@ class AbastractModel(ABC):
         )
         setattr(self, 'model', model)
 
-    def fit(self, X, y, MAP=True, **kwargs):
+    def fit(self, MAP=True, **kwargs):
         """
         """
         setattr(self, 'map', MAP)
@@ -109,10 +113,11 @@ class AbastractModel(ABC):
             **kwargs
         )
 
-    def show_posterior_summary(self, figsize=(10, 8), **kwargs):
+    def show_posterior_summary(self, parameters_name, figsize=(10, 8),
+                               **kwargs):
         """
         """
-        self.print_model_summary()
+        self.print_model_summary(parameters_name=parameters_name)
         if self.map:
             visualize_regression_lines(
                 X=self.X,
@@ -133,7 +138,7 @@ class AbastractModel(ABC):
                     var_names=['Intercept', 'Slope', 'y']
                 )
                 setattr(self, 'posterior_checks', posterior_checks)
-                pm.plot_trace(self.traces)
+                pm.plot_trace(self.traces, compact=True)
             visualize_regression_lines(
                 X=self.X,
                 y=self.y,
@@ -141,7 +146,7 @@ class AbastractModel(ABC):
                 slopes=self.posterior_checks['Slope'],
                 figsize=figsize,
                 overlay=False,
-                predictions=posterior_checks['y'],
+                predictions=self.posterior_checks['y'],
                 title='Posterior Regression Lines',
                 logistic=self.logistic,
                 **kwargs

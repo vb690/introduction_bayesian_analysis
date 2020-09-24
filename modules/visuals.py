@@ -210,7 +210,7 @@ def visualize_priors_effect(parameter_space, priors, likelihood,
             ax.set_xlim(0, 1)
             ax.set_title(prior_key)
             ax.set_ylabel('Plausibility')
-            ax.set_xlabel('Proportion of Sick People')
+            ax.set_xlabel('Proportion')
             handles, labels = ax.get_legend_handles_labels()
 
     fig.legend(
@@ -311,13 +311,13 @@ def visualize_binomial_update(n_tests, parameter_name, remapper,
     return None
 
 
-def visualize_bivariate_regression(X, y, X_label='', y_label='', title='',
+def visualize_bivariate_relationship(X, y, X_label='', y_label='', title='',
                                    figsize=(10, 8), **kwargs):
     """
     """
     sns.set(style='white', font_scale=1.5)
     plt.figure(figsize=figsize)
-    plt.scatter(X, y)
+    plt.scatter(X, y, **kwargs)
 
     plt.title(title)
     plt.ylabel(y_label)
@@ -382,12 +382,17 @@ def visualize_regression_lines(X, y, intercepts, slopes, title,
     alpha_1 = 0.3 if overlay else 1
     alpha_2 = 1 if overlay else 0.3
 
+    sort_index = X.argsort()
+    X = X[sort_index]
+    y = y[sort_index]
+
     sns.set(style='white', font_scale=1.5)
     plt.figure(figsize=figsize)
 
     predictor = np.linspace(X.min(), X.max(), len(X))
 
     if predictions is not None:
+        predictions = predictions[sort_index]
         lines = intercepts.reshape(-1, 1) + \
                 slopes.reshape(-1, 1) * predictor.reshape(1, -1)
         if logistic:
@@ -410,33 +415,38 @@ def visualize_regression_lines(X, y, intercepts, slopes, title,
         plt.plot(
             predictor,
             lines_percentiles[0, :],
-            alpha=alpha_1 / 2,
+            alpha=alpha_1 * 0.75,
             linestyle='dotted',
             color='r'
         )
         plt.plot(
             predictor,
             lines_percentiles[1, :],
-            alpha=alpha_1 / 2,
+            alpha=alpha_1 * 0.75,
             linestyle='dotted',
             color='r'
         )
         if not logistic:
             plt.plot(
-                X,
-                predictions_percentiles[0, :],
-                alpha=alpha_1 / 2,
+                [X.min(), X.max()],
+                [
+                    predictions_percentiles[0, :].min(),
+                    predictions_percentiles[0, :].max()
+                ],
+                alpha=alpha_1 * 0.75,
                 linestyle='dashed',
                 color='b'
             )
             plt.plot(
-                X,
-                predictions_percentiles[1, :],
-                alpha=alpha_1 / 2,
+                [X.min(), X.max()],
+                [
+                    predictions_percentiles[1, :].min(),
+                    predictions_percentiles[1, :].max()
+                ],
+                alpha=alpha_1 * 0.75,
                 linestyle='dashed',
                 color='b'
             )
-
     else:
         for intercept, slope in zip(intercepts, slopes):
 
@@ -456,7 +466,6 @@ def visualize_regression_lines(X, y, intercepts, slopes, title,
         alpha=alpha_2,
         c='b'
     )
-
     plt.title(title)
     plt.xlabel('Predictor X')
     plt.ylabel('Outcome y')
@@ -472,13 +481,13 @@ def visualize_bivariate_parameter_grid(parameter_1, parameter_2,
     """
     sns.set(style='white', font_scale=1.5)
 
-    g = sns.JointGrid(
+    grid = sns.JointGrid(
         x=parameter_1,
         y=parameter_2,
         space=0,
         height=height
     )
-    g.plot_joint(
+    grid.plot_joint(
         sns.kdeplot,
         clip=(
             (parameter_1.min(), parameter_1.max()),
@@ -488,12 +497,36 @@ def visualize_bivariate_parameter_grid(parameter_1, parameter_2,
         levels=100,
         cmap='rocket'
     )
-    g.plot_marginals(
+    grid.plot_marginals(
         sns.histplot,
         color='#03051A',
         bins=25
     )
-    g.set_axis_labels(parameter_1_name, parameter_2_name)
+    grid.set_axis_labels(parameter_1_name, parameter_2_name)
+
+    plt.show()
+    return None
+
+
+def visualize_heatmap(df, pivot_varaibles, rounding=4, figsize=(10, 10),
+                      **kwargs):
+    """
+    """
+    columns = [i for i in pivot_varaibles]
+    pivoted = df[columns].round(rounding)
+    pivoted = pivoted.pivot(
+        pivot_varaibles[0],
+        pivot_varaibles[1],
+        pivot_varaibles[2]
+    )
+
+    sns.set(style='white', font_scale=1.5)
+    plt.figure(figsize=figsize)
+
+    sns.heatmap(
+        pivoted,
+        **kwargs
+    )
 
     plt.show()
     return None

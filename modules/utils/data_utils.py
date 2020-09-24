@@ -6,46 +6,57 @@ import pandas as pd
 from modules.stats.backend import compute_sigmoid
 
 
-def generate_polynomial(X,  degree=3, noise_ratio=1):
+def generate_polynomial_data(X,  degree=3, noise_ratio=1, batches=1):
     """
     """
     intercept = np.random.normal()
-    coefficients = {coef: np.random.normal() for coef in range(1, degree+1)}
+    coefficients = {
+        f'slope_{coef}': np.random.normal() for coef in range(1, degree+1)
+    }
+    true_parameters = {**coefficients, **{'intercept': intercept}}
 
-    y=[]
-    for x in X:
+    df = []
+    for batch in range(batches):
 
-        mu = intercept
+        y = []
+        df_batch = pd.DataFrame(columns=['y', 'X'])
 
-        for coef in range(1, degree+1):
+        for x in X:
 
-            mu += coefficients[coef]*(x**coef)
+            mu = intercept
 
-        y.append(float(mu))
+            for coef in range(1, degree+1):
 
-    y = np.array(y)
-    y += np.random.normal(y.mean(), y.std() * noise_ratio, len(y))
-    y = (y - y.mean()) / y.std()
-    return X, y
+                mu += coefficients[f'slope_{coef}']*(x**coef)
+
+            y.append(float(mu))
+
+        y = np.array(y)
+        y += np.random.normal(y.mean(), y.std() * noise_ratio, len(y))
+        y = (y - y.mean()) / y.std()
+
+        df_batch['y'] = y
+        df_batch['X'] = X
+        df.append(df_batch)
+
+    df = pd.concat(df)
+    return df, true_parameters
 
 
-def generate_poisson_ar(lam_int, slope_a, slope_b, mu_noise, sigma_noise,
-                        burn_factor=2, time_steps=48):
+def generate_poisson_ar_data(lam_int, slope_a, slope_b, burn_factor=2,
+                             time_steps=48, batches=1):
     """
     """
-    init = np.random.poisson(lam_int)
+    intercept = np.random.poisson(lam_int)
     slope = np.random.beta(slope_a, slope_b)
-    process = [init]
+    process = [intercept]
     true_parameters = {
-        'mu_noise': mu_noise,
-        'sigma_noise': sigma_noise,
-        'Slope': slope
+        'intercept': intercept,
+        'slope': slope
     }
     for time_step in range(time_steps * burn_factor):
 
-        new_lam = (slope * process[time_step]) + \
-            np.random.normal(mu_noise, sigma_noise)
-        new_lam = max(0, new_lam)
+        new_lam = intercept + (slope * process[time_step])
         new_value = np.random.poisson(new_lam)
         process.append(new_value)
 
@@ -64,23 +75,51 @@ def generate_game_difficulty_data(players=100, levels=10, n_sessions=10,
         'num_success': [],
         'num_attempts': [],
     }
+    true_parameters = {
+        'player_id': [],
+        'levels_id': [],
+        'level_difficulty': [],
+        'player_ability': [],
+        'delta': [],
+        'probability_success':[]
+
+    }
+    players_ability = []
     for player in range(players):
 
         player_ability = np.random.normal(
-             np.random.normal(0, 2, 1)[0],
-            halfnorm.rvs(loc=0, scale=2, size=1)[0],
+             np.random.normal(0, 0.5, 1)[0],
+            halfnorm.rvs(loc=0, scale=1, size=1)[0],
             1
         )[0]
+        players_ability.append(player_ability)
 
-        for level in range(levels):
 
-            level_difficulty = np.random.normal(
-                np.random.normal(0.5, 2, 1)[0],
-                halfnorm.rvs(loc=0, scale=2, size=1)[0],
-                1
-            )[0]
+    levels_difficulty = []
+    for level in range(levels):
 
-            p_success = compute_sigmoid(player_ability - level_difficulty)
+        level_difficulty = np.random.normal(
+            np.random.normal(0, 0.5, 1)[0],
+            halfnorm.rvs(loc=0, scale=1, size=1)[0],
+            1
+        )[0]
+        levels_difficulty.append(level_difficulty)
+
+    for player, ability in enumerate(players_ability):
+
+        for level, difficulty in enumerate(levels_difficulty):
+
+            delta = ability - difficulty
+            p_success = compute_sigmoid(
+                delta
+            )
+
+            true_parameters['player_id'].append(player)
+            true_parameters['levels_id'].append(level)
+            true_parameters['level_difficulty'].append(difficulty)
+            true_parameters['player_ability'].append(ability)
+            true_parameters['delta'].append(delta)
+            true_parameters['probability_success'].append(p_success)
 
             for session in range(n_sessions):
 
@@ -96,7 +135,10 @@ def generate_game_difficulty_data(players=100, levels=10, n_sessions=10,
                 )
                 data['num_attempts'].append(attempts)
 
+    true_parameters = pd.DataFrame(
+        true_parameters
+    )
     df = pd.DataFrame(
         data
     )
-    return df
+    return df, true_parameters
