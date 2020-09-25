@@ -1,4 +1,6 @@
 numpy
+dataclasses
+contextvars
 scikit-learn
 graphviz
 pydot
