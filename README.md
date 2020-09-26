@@ -87,7 +87,7 @@ Application-oriented version, more suitable for being delivered in industry sett
 4. At this point install all the requirements with:
 ```sh
 # install the requirements
-conda install --file requirements.txt
+conda install -c conda-forge --file requirements.txt
 
 # open jupyter 
 jupyter notebook
