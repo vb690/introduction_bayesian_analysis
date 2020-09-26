@@ -22,7 +22,6 @@ class BivariateRegression(AbastractModel):
         self.logistic = logistic
         self.model = self.generate_model(X, y)
 
-
     def generate_model(self, X, y):
         """
         """
@@ -125,6 +124,7 @@ class PoissonAR1(AbastractModel):
             with self.model:
                 pm.plot_trace(self.traces, compact=True)
 
+
 class PolynomialRegression(AbastractModel):
     """
     """
@@ -174,8 +174,8 @@ class PolynomialRegression(AbastractModel):
                 )
                 mu = pm.Deterministic(
                     'mu ~ Intercept + Sl*X + Sl_1*(X**2) + Sl_2*(X**3)',
-                    intercept + \
-                        X*slope + np.power(X, 2)*slope1 + np.power(X, 3)*slope2
+                    intercept +
+                    X*slope + np.power(X, 2)*slope1 + np.power(X, 3)*slope2
                 )
             sigma = pm.Exponential(
                 name='Sigma',

@@ -6,6 +6,6 @@ python-graphviz
 scipy
 matplotlib
 seaborn
-pymc3
+pymc3==3.9.3
 rise
 jupyterlab

@@ -64,7 +64,7 @@ def generate_poisson_ar_data(lam_int, slope_a, slope_b, burn_factor=2,
     return process, true_parameters
 
 
-def generate_game_difficulty_data(players=100, levels=10, n_sessions=10,
+def generate_game_difficulty_data(players=100, levels=10, max_sessions=20,
                                   max_attempts=10):
     """
     """
@@ -81,7 +81,7 @@ def generate_game_difficulty_data(players=100, levels=10, n_sessions=10,
         'level_difficulty': [],
         'player_ability': [],
         'delta': [],
-        'probability_success':[]
+        'probability_success': []
 
     }
     players_ability = []
@@ -89,11 +89,10 @@ def generate_game_difficulty_data(players=100, levels=10, n_sessions=10,
 
         player_ability = np.random.normal(
              np.random.normal(0, 0.5, 1)[0],
-            halfnorm.rvs(loc=0, scale=1, size=1)[0],
-            1
+             halfnorm.rvs(loc=0, scale=1, size=1)[0],
+             1
         )[0]
         players_ability.append(player_ability)
-
 
     levels_difficulty = []
     for level in range(levels):
@@ -121,6 +120,7 @@ def generate_game_difficulty_data(players=100, levels=10, n_sessions=10,
             true_parameters['delta'].append(delta)
             true_parameters['probability_success'].append(p_success)
 
+            n_sessions = np.random.randint(1, max_sessions, 1)[0]
             for session in range(n_sessions):
 
                 attempts = np.random.randint(1, max_attempts, 1)[0]
