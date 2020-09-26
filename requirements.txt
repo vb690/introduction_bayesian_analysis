@@ -1,6 +1,4 @@
 numpy
-dataclasses
-contextvars
 scikit-learn
 graphviz
 pydot
@@ -8,6 +6,6 @@ python-graphviz
 scipy
 matplotlib
 seaborn
-pymc3==3.9.3
+pymc3
 rise
 jupyterlab

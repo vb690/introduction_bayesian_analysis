@@ -19,8 +19,9 @@ class BivariateRegression(AbastractModel):
         self.fit_intercept = fit_intercept
         self.X = X
         self.y = y
-        self.model = self.generate_model(X, y)
         self.logistic = logistic
+        self.model = self.generate_model(X, y)
+
 
     def generate_model(self, X, y):
         """

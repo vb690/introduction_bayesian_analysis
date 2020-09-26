@@ -67,27 +67,17 @@ Application-oriented version, more suitable for being delivered in industry sett
 # Requirements 
 1. Download your local version of the workshop repository
 2. Install [Anaconda](https://docs.anaconda.com/anaconda/install/)
+3. Open the Anaconda Powershell Prompt in the workshop directory
+4. Then from the Prompt
+``` python
+# create anaconda environment
+conda create -n workshop_env python=3.6
 
-3. If you run a Windows machine and do not have administrator rights:
-  - Open Anaconda Navigator
-  - Create a new environment with `python=3.6` and call it `workshop_env`
-  - Open the Anaconda Powershell Prompt associated to the new environment
-  - Navigate to the workshop directory 
+# activate the environment
+conda activate workshop_env
 
-3. If you run a Windows machine and do have  administrator rights:
-  - Open the Anaconda Powershell Prompt in the workshop directory
-  - Then from the Prompt:
-  ``` sh
-  # create anaconda environment
-  conda create -n workshop_env python=3.6
-
-  # activate the environment
-  conda activate workshop_env
-  ```
-4. At this point install all the requirements with:
-```sh
 # install the requirements
-conda install -c conda-forge --file requirements.txt
+conda install --file requirements.txt
 
 # open jupyter 
 jupyter notebook

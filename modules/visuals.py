@@ -263,14 +263,14 @@ def visualize_binomial_update(n_tests, parameter_name, remapper,
         fig = plt.figure(figsize=figsize)
         if hist:
             sns.barplot(
-                parameter_space,
-                prob,
+                x=parameter_space,
+                y=prob,
                 **kwargs
             )
         else:
             plt.plot(
-                parameter_space,
-                prob,
+                x=parameter_space,
+                y=prob,
                 **kwargs
             )
             plt.xticks(parameter_space)
