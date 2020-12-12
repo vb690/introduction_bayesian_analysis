@@ -147,16 +147,24 @@ class GameDifficultyModel(AbastractModel):
                 dims='Levels'
             )
 
+            fixed_intercept = pm.Normal(
+                name='fixed_intercept',
+                mu=0,
+                sigma=1,
+                dims='Levels'
+            )
+
             # probability of success increase when ability is greater than
             # level difficulty
             delta = pm.Deterministic(
                 'delta = player_ability - level_difficulty',
-                player_ability[players_idx] - level_difficulty[levels_idx]
+                fixed_intercept +
+                player_ability[players_idx] + level_difficulty[levels_idx]
             )
 
             probability_success = pm.Deterministic(
-                'p = sigmoid(delta)',
-                pm.math.sigmoid(delta)
+                'p = invlogit(delta)',
+                pm.math.invlogit(delta)
             )
 
             outcome = pm.Binomial(

@@ -103,8 +103,8 @@ class PoissonAR1(AbastractModel):
             )
 
             lam = pm.Deterministic(
-                'lambda ~ Intercept + Slope*yt-1',
-                intercept + slope*X
+                'lambda ~ exp(Intercept + Slope*yt-1)',
+                pm.math.exp(intercept + slope*X)
             )
 
             outcome = pm.Poisson(
