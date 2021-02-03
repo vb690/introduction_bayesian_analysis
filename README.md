@@ -1,4 +1,4 @@
-# Bayesian data analysis: an introductory workshop
+# Bayesian Data Analysis: an Introductory Workshop
   
 <p align="center">
   <img width="906" height="300" src="https://github.com/vb690/introduction_bayesian_analysis/blob/master/results/figures/presentation/header.png">
